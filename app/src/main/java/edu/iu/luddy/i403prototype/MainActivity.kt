@@ -7,9 +7,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.displayCutoutPadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,8 +27,12 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableIntStateOf
@@ -39,6 +45,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -68,12 +75,13 @@ class MainActivity : ComponentActivity() {
         // Mutables
         setContent {
             val orientatorMode = remember { mutableIntStateOf(0) }
+            val showAISheet = remember { mutableStateOf(0) }
 
             I403PrototypeTheme {
                 Scaffold(
                     topBar = { TopBar("Navigation") },
                     modifier = Modifier.fillMaxSize(),
-                    bottomBar = { Actions() }
+                    bottomBar = { Actions(showAISheet) }
                 ) { innerPadding ->
                     Column(
                         verticalArrangement = Arrangement.Center,
@@ -204,7 +212,7 @@ fun Orientator(mode: MutableState<Int>, distance: Int, direction: String, street
 }
 
 @Composable
-fun Actions() {
+fun Actions(showAISheet: MutableState<Int>) {
     Row(
         horizontalArrangement = Arrangement.SpaceAround,
         modifier = Modifier
@@ -212,6 +220,7 @@ fun Actions() {
             .fillMaxWidth()
             .padding(vertical = 20.dp)
     ) {
+        // Emergency Services Dialog Launcher
         IconButton(
             onClick = {},
             shape = RoundedCornerShape(12.dp),
@@ -219,13 +228,14 @@ fun Actions() {
         ) {
             Icon(
                 painter = painterResource(R.drawable.emergency),
-                contentDescription = "Emergency Star",
+                contentDescription = "Emergency (Star)",
                 modifier = Modifier.size(48.dp)
             )
         }
 
+        // AI Sheet Launcher
         IconButton(
-            onClick = {},
+            onClick = { if (showAISheet.value == 0) showAISheet.value = 1 else showAISheet.value = 0},
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier
                 .height(72.dp)
@@ -239,11 +249,14 @@ fun Actions() {
         ) {
             Icon(
                 painter = painterResource(R.drawable.robot),
-                contentDescription = "Emergency Star",
+                contentDescription = "AI Mascot (Robot)",
                 modifier = Modifier.size(48.dp)
             )
         }
 
+        if (showAISheet.value == 1) AISheet(onDismiss = { showAISheet.value = 0 })
+
+        // Directions Page Launcher
         IconButton(
             onClick = {},
             shape = RoundedCornerShape(12.dp),
@@ -251,9 +264,129 @@ fun Actions() {
         ) {
             Icon(
                 painter = painterResource(R.drawable.navigation),
-                contentDescription = "Navigation Arrow",
+                contentDescription = "Navigation (Arrow)",
                 modifier = Modifier.size(48.dp)
             )
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AISheet(onDismiss: () -> Unit) {
+    val sheetState = rememberModalBottomSheetState( skipPartiallyExpanded = false )
+
+    ModalBottomSheet(
+        sheetState = sheetState,
+        onDismissRequest = onDismiss
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .navigationBarsPadding()
+                .padding(bottom = 16.dp)
+        ) {
+            // James
+            ChatEntry(
+                type = 0,
+                alt = "AI Mascot (Robot)",
+                name = "Mr. James Rouety",
+                text = "Hello! I'm here for you every step of the way. How can I help you navigate today?"
+            )
+
+            // You
+            ChatEntry(
+                type = 1,
+                alt = "Yourself (Person)",
+                name = "You",
+                text = "Please navigate me home.. I'm drunk, and cannot drive. Please use shortest route, no mistakes."
+            )
+
+            IconButton(
+                onClick = { }, // Dummy Button (Wizard of Oz)
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                    .height(48.dp)
+                    .fillMaxWidth(),
+                colors = IconButtonColors(
+                    containerColor = Color(0xFF23873D),
+                    contentColor = Color.White,
+                    disabledContainerColor = Color(0xFF23873D),
+                    disabledContentColor = Color.White
+                )
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.waveform),
+                        contentDescription = "AI Mascot (Robot)",
+                        modifier = Modifier.size(32.dp)
+                    )
+
+                    Text("Speak to Mr. James Routey", fontSize = 20.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ChatEntry(type: Int, alt: String, name: String, text: String) {
+    Column() {
+        Row(
+            horizontalArrangement = if (type == 0) Arrangement.Start else Arrangement.End,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (type == 0) {
+                    Icon(
+                        painter = painterResource(
+                            when(type) {
+                                0 -> R.drawable.robot
+                                else -> R.drawable.person
+                            }
+                        ),
+                        contentDescription = alt,
+                        modifier = Modifier.size(48.dp)
+                    )
+
+                    Text(name, fontSize = 26.sp)
+                } else { // Reverse View
+                    Text(name, fontSize = 26.sp)
+
+                    Icon(
+                        painter = painterResource(
+                            when(type) {
+                                0 -> R.drawable.robot
+                                else -> R.drawable.person
+                            }
+                        ),
+                        contentDescription = alt,
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
+            }
+        }
+
+        HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+
+        Text(
+            text = text,
+            textAlign = if (type == 0) TextAlign.Left else TextAlign.Right,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = if (type == 0) 6.dp else 0.dp,
+                    end = if (type == 0) 0.dp else 6.dp
+                )
+        )
     }
 }
