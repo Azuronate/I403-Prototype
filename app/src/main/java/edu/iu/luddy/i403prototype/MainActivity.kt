@@ -72,10 +72,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             I403PrototypeTheme {
+                // Need to pass context for launching other activities
                 Scaffold(
                     topBar = { TopBar(this, "Navigation") { } },
                     modifier = Modifier.fillMaxSize(),
-                    bottomBar = { Actions(this@MainActivity) }
+                    bottomBar = { Actions(this) }
                 ) { innerPadding ->
                     Column(
                         verticalArrangement = Arrangement.Center,
@@ -91,6 +92,15 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Application-wide center-alinged `TopAppBar()` showcasing constant application actions.
+ * Such as going back to the previous page (back arrow), settings page (cog), and mute volume.
+ * Each page has a title, shown in the center.
+ *
+ * @param context context of the `MainActivity` (launches intents)
+ * @param title the page title
+ * @param onNavigate what the back arrow should do (not present on `MainActivity`; `finish()`)
+ */
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun TopBar(context: Context, title: String, onNavigate: () -> Unit) {
@@ -100,7 +110,7 @@ fun TopBar(context: Context, title: String, onNavigate: () -> Unit) {
             title = { Text(title) },
             expandedHeight = 52.dp,
             navigationIcon = {
-                if (title != "Navigation") {
+                if (title != "Navigation") { // No need to show a back arrow on the `MainActivity`
                     IconButton(
                         onClick = onNavigate,
                         modifier = Modifier.size(24.dp)
@@ -150,6 +160,15 @@ fun TopBar(context: Context, title: String, onNavigate: () -> Unit) {
     }
 }
 
+/**
+ * Showcases directions in a huge format for the user. These directions are paired with the distance,
+ * direction (plus its word form), and the current street. If the user wishes to an overhead view, they
+ * can click the "View Map" button to toggle a map.
+ *
+ * @param distance numerical feet until the turn
+ * @param direction what change of current direction is next (to get onto this road)
+ * @param street the street name
+ */
 @Composable
 fun Orientator(distance: Int, direction: String, street: String) {
     val mode = rememberSaveable { mutableIntStateOf(0) }
@@ -226,6 +245,16 @@ fun Orientator(distance: Int, direction: String, street: String) {
     }
 }
 
+/**
+ * A semi-application-wide `bottomBar` of actions that the user can do main user actions
+ * with. Most importantly, with the AI agent (displayed via a popout sheet) which allows
+ * the user to converse and make important decisions with. Then, the emergency contacts
+ * allowing the user to contact 911, IUPD, family members, and most importantly Prof.
+ * James. Lastly is the directions page, which just showcases a summary of turns or
+ * the possibility of changing your points (A, B).
+ *
+ * @param context of the `MainActivity` (launches intents)
+ */
 @Composable
 fun Actions(context: Context) {
     val showAISheet = rememberSaveable { mutableStateOf(false) }
@@ -239,9 +268,7 @@ fun Actions(context: Context) {
             .padding(vertical = 20.dp)
     ) {
         // Emergency Services Dialog Launcher
-        if (context is MainActivity) {
-            ActionButton(0, "Emergency Contacts (Star)") { showEmergencyDialog.value = !showEmergencyDialog.value }
-        }
+        ActionButton(0, "Emergency Contacts (Star)") { showEmergencyDialog.value = !showEmergencyDialog.value }
 
         if (showEmergencyDialog.value) {
             EmergencyDialog(
@@ -265,6 +292,15 @@ fun Actions(context: Context) {
     }
 }
 
+/**
+ * Simple reusable and adaptable button component for user actions.
+ * Click events are controlled at invocation location, as to save
+ * this from being a massive function.
+ *
+ * @param type the action type (0: emergency, 1: AI, 2: directions)
+ * @param alt the `contentDescription` of the icons
+ * @param onClick lambda for determining how to launch the action
+ */
 @Composable
 fun ActionButton(type: Int, alt: String, onClick: () -> Unit) {
     IconButton(
@@ -294,6 +330,12 @@ fun ActionButton(type: Int, alt: String, onClick: () -> Unit) {
     }
 }
 
+/**
+ * Shows the user a bottom sheet of a mock AI conversation (big part of our Wizard of Oz),
+ * with a dummy button for voice capture.
+ *
+ * @param onDismiss toggles a `MutableState<Boolean>` outside this function to handle the visibility state
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AISheet(onDismiss: () -> Unit) {
@@ -358,21 +400,31 @@ fun AISheet(onDismiss: () -> Unit) {
     }
 }
 
+/**
+ * Chat component to build towards a "mock conversation." Depending on the `entity` it changes
+ * the `name` and the icon associated with it. The `text` is what the `entity` says in this
+ * conversation.
+ *
+ * @param entity either the AI (0) or a person (1; you)
+ * @param alt the `contentDescription` of the icons
+ * @param name the name of the `entity`
+ * @param text what the `entity` says
+ */
 @Composable
-fun ChatEntry(type: Int, alt: String, name: String, text: String) {
+fun ChatEntry(entity: Int, alt: String, name: String, text: String) {
     Column() {
         Row(
-            horizontalArrangement = if (type == 0) Arrangement.Start else Arrangement.End,
+            horizontalArrangement = if (entity == 0) Arrangement.Start else Arrangement.End,
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (type == 0) {
+                if (entity == 0) {
                     Icon(
                         painter = painterResource(
-                            when(type) {
+                            when(entity) {
                                 0 -> R.drawable.robot
                                 else -> R.drawable.person
                             }
@@ -387,7 +439,7 @@ fun ChatEntry(type: Int, alt: String, name: String, text: String) {
 
                     Icon(
                         painter = painterResource(
-                            when(type) {
+                            when(entity) {
                                 0 -> R.drawable.robot
                                 else -> R.drawable.person
                             }
@@ -403,19 +455,26 @@ fun ChatEntry(type: Int, alt: String, name: String, text: String) {
 
         Text(
             text = text,
-            textAlign = if (type == 0) TextAlign.Left else TextAlign.Right,
+            textAlign = if (entity == 0) TextAlign.Left else TextAlign.Right,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
-                    start = if (type == 0) 6.dp else 0.dp,
-                    end = if (type == 0) 0.dp else 6.dp
+                    start = if (entity == 0) 6.dp else 0.dp,
+                    end = if (entity == 0) 0.dp else 6.dp
                 )
         )
     }
 }
 
+/**
+ * Brings a `Dialog` to the foreground to allow the user to immediately (dummy) call emergency contacts.
+ * It includes: 911, IUPD, family members, and Prof. James, just as dummy buttons (don't feel like
+ * programming that).
+ *
+ * @param onDismiss toggles a `MutableState<Boolean>` outside this function to handle the visibility state
+ */
 @Composable
-fun EmergencyDialog(title: String, text: String, onDismiss: () -> Unit) {
+fun EmergencyDialog(onDismiss: () -> Unit) {
     val buttonHeight: Dp = 48.dp
 
     Dialog(onDismiss) {
@@ -427,6 +486,7 @@ fun EmergencyDialog(title: String, text: String, onDismiss: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(20.dp),
                 modifier = Modifier.padding(20.dp)
             ) {
+                // Title
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -443,14 +503,17 @@ fun EmergencyDialog(title: String, text: String, onDismiss: () -> Unit) {
                     )
                 }
 
+                // Description
                 Text(
                     "To initiate a call to an emergency contact, simply click the button to start a call:",
                     fontSize = 14.sp
                 )
 
+                // Button Column
                 Column(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    // 911
                     Button(
                         onClick = { },
                         shape = RoundedCornerShape(4.dp),
@@ -467,6 +530,7 @@ fun EmergencyDialog(title: String, text: String, onDismiss: () -> Unit) {
                         Text("Call 911", fontSize = 28.sp)
                     }
 
+                    // IUPD
                     Button(
                         onClick = { },
                         shape = RoundedCornerShape(4.dp),
@@ -483,6 +547,7 @@ fun EmergencyDialog(title: String, text: String, onDismiss: () -> Unit) {
                         Text("Call IUPD", fontSize = 28.sp)
                     }
 
+                    // Mom
                     Button(
                         onClick = { },
                         shape = RoundedCornerShape(4.dp),
@@ -499,6 +564,7 @@ fun EmergencyDialog(title: String, text: String, onDismiss: () -> Unit) {
                         Text("Call Mom", fontSize = 28.sp)
                     }
 
+                    // Dad
                     Button(
                         onClick = { },
                         shape = RoundedCornerShape(4.dp),
@@ -515,6 +581,7 @@ fun EmergencyDialog(title: String, text: String, onDismiss: () -> Unit) {
                         Text("Call Dad", fontSize = 28.sp)
                     }
 
+                    // Prof. James
                     Button(
                         onClick = { },
                         shape = RoundedCornerShape(4.dp),

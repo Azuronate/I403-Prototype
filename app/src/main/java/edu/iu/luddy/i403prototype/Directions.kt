@@ -102,6 +102,7 @@ class Directions : ComponentActivity() {
                         }
                     }
 
+                    // Take all directions and stuff them into my `DirectionView()`s
                     LazyColumn() {
                         directions.forEach { (street, information) ->
                             item { DirectionView(street, information.first, information.second) }
@@ -113,6 +114,15 @@ class Directions : ComponentActivity() {
     }
 }
 
+/**
+ * Compact way to constantly display steps/direction to the user. Each step has a
+ * `direction` (left, right, straight) the street in which this direction change takes
+ * place, and an optional `danger`.
+ *
+ * @param street the name of the street which to turn onto
+ * @param direction the direction from your current position to turn onto the `street`
+ * @param danger an optional text subtitle for the `street`
+ */
 @Composable
 fun DirectionView(street: String, direction: String, danger: String) {
     Row(

@@ -107,6 +107,12 @@ class Settings : ComponentActivity() {
     }
 }
 
+/**
+ * Reusable `Text` plus `Switch` to mimic a real setting toggle.
+ *
+ * @param text the setting's title
+ * @param checked default state of the setting (cannot be changed; Wizard of Oz)
+ */
 @Composable
 fun Setting(text: String, checked: Boolean) {
     Row(
