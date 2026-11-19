@@ -44,10 +44,9 @@ class Directions : ComponentActivity() {
             "N Sunrise Drive" to ("Left" to ""),
         )
 
-        // Mutables
         setContent {
             Scaffold(
-                topBar = { TopBar("Directions") { finish() } },
+                topBar = { TopBar(this, "Directions") { finish() } },
                 modifier = Modifier.fillMaxSize(),
                 bottomBar = { Actions(this) }
             ) { innerPadding ->

@@ -70,28 +70,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-        // Hardcoded Streets
-        val streets: List<String> = listOf<String>(
-            "Kirkwood Avenue",
-            "Walnut Street",
-            "2nd Street",
-            "3rd Street",
-            "Atwater Avenue",
-            "7th Street",
-            "10th Street",
-            "Eagleson Avenue",
-            "University Street",
-            "College Avenue",
-            "Sunrise Drive",
-            "Union Street",
-        )
-
-        // Mutables
         setContent {
             I403PrototypeTheme {
                 Scaffold(
-                    topBar = { TopBar("Navigation") { } },
+                    topBar = { TopBar(this, "Navigation") { } },
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = { Actions(this@MainActivity) }
                 ) { innerPadding ->
@@ -101,7 +83,7 @@ class MainActivity : ComponentActivity() {
                             .fillMaxSize()
                             .padding(innerPadding)
                     ) {
-                        Orientator(200, "Right", streets[0])
+                        Orientator(200, "Right", "Kirkwood Avenue")
                     }
                 }
             }
@@ -111,7 +93,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun TopBar(title: String, onNavigate: () -> Unit) {
+fun TopBar(context: Context, title: String, onNavigate: () -> Unit) {
     Column() {
         // Bar
         CenterAlignedTopAppBar(
@@ -137,7 +119,10 @@ fun TopBar(title: String, onNavigate: () -> Unit) {
                 ) {
                     // Settings
                     IconButton(
-                        onClick = {},
+                        onClick = {
+                            val intent = Intent(context, Settings::class.java)
+                            context.startActivity(intent)
+                        },
                         modifier = Modifier.size(24.dp)
                     ) {
                         Icon(

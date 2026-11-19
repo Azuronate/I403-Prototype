@@ -28,6 +28,11 @@
             android:label="Directions"
             android:theme="@style/Theme.I403Prototype"
             android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".Settings"
+            android:exported="false"
+            android:label="Settings"
+            android:theme="@style/Theme.I403Prototype"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>
