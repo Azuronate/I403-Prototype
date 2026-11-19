@@ -271,10 +271,7 @@ fun Actions(context: Context) {
         ActionButton(0, "Emergency Contacts (Star)") { showEmergencyDialog.value = !showEmergencyDialog.value }
 
         if (showEmergencyDialog.value) {
-            EmergencyDialog(
-                title = "Emergency Contacts",
-                text = "To initiate a call to an emergency contact, simply click the button to start a call:"
-            ) { showEmergencyDialog.value = false }
+            EmergencyDialog() { showEmergencyDialog.value = false }
         }
 
         // AI Sheet Launcher
@@ -355,7 +352,7 @@ fun AISheet(onDismiss: () -> Unit) {
         ) {
             // James
             ChatEntry(
-                type = 0,
+                entity = 0,
                 alt = "AI Mascot (Robot)",
                 name = "Mr. James Rouety",
                 text = "Hello! I'm here for you every step of the way. How can I help you navigate today?"
@@ -363,7 +360,7 @@ fun AISheet(onDismiss: () -> Unit) {
 
             // You
             ChatEntry(
-                type = 1,
+                entity = 1,
                 alt = "Yourself (Person)",
                 name = "You",
                 text = "Please navigate me home.. I'm drunk and cannot drive. Please use shortest route, no mistakes."
@@ -455,6 +452,7 @@ fun ChatEntry(entity: Int, alt: String, name: String, text: String) {
 
         Text(
             text = text,
+            fontSize = 16.sp,
             textAlign = if (entity == 0) TextAlign.Left else TextAlign.Right,
             modifier = Modifier
                 .fillMaxWidth()
