@@ -2,6 +2,8 @@ package edu.iu.luddy.i403prototype
 
 import android.app.AlertDialog
 import android.app.Dialog
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -89,9 +91,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             I403PrototypeTheme {
                 Scaffold(
-                    topBar = { TopBar("Navigation") },
+                    topBar = { TopBar("Navigation") { } },
                     modifier = Modifier.fillMaxSize(),
-                    bottomBar = { Actions() }
+                    bottomBar = { Actions(this@MainActivity) }
                 ) { innerPadding ->
                     Column(
                         verticalArrangement = Arrangement.Center,
@@ -109,12 +111,25 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun TopBar(title: String) {
+fun TopBar(title: String, onNavigate: () -> Unit) {
     Column() {
         // Bar
         CenterAlignedTopAppBar(
             title = { Text(title) },
             expandedHeight = 52.dp,
+            navigationIcon = {
+                if (title != "Navigation") {
+                    IconButton(
+                        onClick = onNavigate,
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.back),
+                            contentDescription = "Go Back (Arrow)",
+                        )
+                    }
+                }
+            },
             actions = {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(32.dp),
@@ -166,7 +181,7 @@ fun Orientator(distance: Int, direction: String, street: String) {
                 shape = RoundedCornerShape(10.dp)
             )
             .paint(
-                painter = if (mode.value == 0) ColorPainter(Color.Transparent) else painterResource(
+                painter = if (mode.intValue == 0) ColorPainter(Color.Transparent) else painterResource(
                     R.drawable.map_view
                 ),
                 contentScale = ContentScale.Inside
@@ -196,7 +211,7 @@ fun Orientator(distance: Int, direction: String, street: String) {
         }
 
         IconButton(
-            onClick = { if (mode.value == 0) mode.value = 1 else mode.value = 0 },
+            onClick = { if (mode.intValue == 0) mode.intValue = 1 else mode.intValue = 0 },
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier
                 .fillMaxWidth()
@@ -218,7 +233,7 @@ fun Orientator(distance: Int, direction: String, street: String) {
                 )
 
                 Text(
-                    text = if (mode.value == 0) "View Map" else "View Directions",
+                    text = if (mode.intValue == 0) "View Map" else "View Directions",
                     fontSize = 32.sp
                 )
             }
@@ -227,7 +242,7 @@ fun Orientator(distance: Int, direction: String, street: String) {
 }
 
 @Composable
-fun Actions() {
+fun Actions(context: Context) {
     val showAISheet = rememberSaveable { mutableStateOf(false) }
     val showEmergencyDialog = rememberSaveable { mutableStateOf(false) }
 
@@ -239,7 +254,9 @@ fun Actions() {
             .padding(vertical = 20.dp)
     ) {
         // Emergency Services Dialog Launcher
-        ActionButton(0, "Emergency Contacts (Star)") { showEmergencyDialog.value = !showEmergencyDialog.value }
+        if (context is MainActivity) {
+            ActionButton(0, "Emergency Contacts (Star)") { showEmergencyDialog.value = !showEmergencyDialog.value }
+        }
 
         if (showEmergencyDialog.value) {
             EmergencyDialog(
@@ -254,8 +271,11 @@ fun Actions() {
         if (showAISheet.value) AISheet(onDismiss = { showAISheet.value = false })
 
         // Directions Page Launcher
-        ActionButton(2, "Navigation (Arrow)") {
-
+        if (context is MainActivity) {
+            ActionButton(2, "Navigation (Arrow)") {
+                val intent = Intent(context, Directions::class.java)
+                context.startActivity(intent)
+            }
         }
     }
 }
